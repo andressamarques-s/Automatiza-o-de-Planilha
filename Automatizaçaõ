@@ -1,1 +1,243 @@
-Autorização
+/ ============================================================
+// LISTA DE PRESENÇA E PESQUISA DE SATISFAÇÃO — BASE DE DADOS
+// Adventist Health Brasil — 2026
+// ============================================================
+
+const ABA_RESPOSTAS = "Respostas ao formulário 1";
+const ABA_LIMPA     = "Base de dados (Suporte)";
+
+// ============================================================
+// ÍNDICES FIXOS (baseados na posição real das colunas)
+// ============================================================
+const IDX = {
+  data_hora   : 0,   // Col 1
+  termo_aceite: 1,   // Col 2
+  nome        : 2,   // Col 3
+  cpf         : 3,   // Col 4
+  sigla_campo : 4,   // Col 5
+  area_servico: 33,  // Col 34
+};
+
+// Unidade: colunas 6 a 33 (índices 5 a 32) — pega a primeira preenchida
+const IDX_UNIDADES = Array.from({length: 28}, (_, i) => i + 5);
+
+// Profissional: colunas 35 a 38 (índices 34 a 37) — pega a primeira preenchida
+const IDX_PROFISSIONAIS = [34, 35, 36, 37];
+
+// Campos condicionais por área
+const AREAS = {
+  SST: {
+    servico_prestado          : 38,  // Col 39
+    nivel_satisfacao_equipe   : 39,  // Col 40
+    nivel_satisfacao_prof     : 40,  // Col 41
+    nivel_satisfacao_espera   : 41,  // Col 42
+    resolvido                 : 42,  // Col 43
+    obs_nao_resolvido         : 43,  // Col 44
+    treinamento               : 44,  // Col 45
+    avaliacao_treinamento     : 45,  // Col 46
+    satisfacao_treinamento    : 46,  // Col 47
+    avaliacao_profissional    : 47,  // Col 48
+  },
+  AMA: {
+    servico_prestado          : 48,  // Col 49
+    nivel_satisfacao_equipe   : 49,  // Col 50
+    nivel_satisfacao_prof     : 50,  // Col 51
+    nivel_satisfacao_espera   : 51,  // Col 52
+    resolvido                 : 52,  // Col 53
+    obs_nao_resolvido         : 53,  // Col 54
+    treinamento               : null,
+    avaliacao_treinamento     : 54,  // Col 55
+    satisfacao_treinamento    : 55,  // Col 56
+    avaliacao_profissional    : 56,  // Col 57
+  },
+  GPS: {
+    servico_prestado          : 57,  // Col 58
+    nivel_satisfacao_equipe   : 58,  // Col 59
+    nivel_satisfacao_prof     : 59,  // Col 60
+    nivel_satisfacao_espera   : 60,  // Col 61
+    resolvido                 : 61,  // Col 62
+    obs_nao_resolvido         : 62,  // Col 63
+    treinamento               : null,
+    avaliacao_treinamento     : 63,  // Col 64
+    satisfacao_treinamento    : 64,  // Col 65
+    avaliacao_profissional    : 65,  // Col 66
+  },
+  SPS: {
+    servico_prestado          : 66,  // Col 67
+    nivel_satisfacao_equipe   : 67,  // Col 68
+    nivel_satisfacao_prof     : 68,  // Col 69
+    nivel_satisfacao_espera   : 69,  // Col 70
+    resolvido                 : 70,  // Col 71
+    obs_nao_resolvido         : 71,  // Col 72
+    treinamento               : null,
+    avaliacao_treinamento     : 72,  // Col 73
+    satisfacao_treinamento    : 73,  // Col 74
+    avaliacao_profissional    : 74,  // Col 75
+  }
+};
+
+// Campos gerais (iguais para todas as áreas)
+const IDX_GERAIS = {
+  nps             : 75,  // Col 76 — probabilidade de recomendar
+  observacao      : 76,  // Col 77
+  falar_gestor    : 77,  // Col 78
+  telefone        : 78,  // Col 79
+  melhor_horario  : 79,  // Col 80
+};
+
+// Ordem das colunas na Base de Dados
+const CABECALHO = [
+  "data_hora", "termo_aceite", "nome", "cpf", "sigla_campo",
+  "unidade", "area_servico", "profissional", "servico_prestado",
+  "nivel_satisfacao_equipe", "nivel_satisfacao_profissional",
+  "nivel_satisfacao_tempo_espera", "resolvido", "obs_nao_resolvido",
+  "treinamento", "avaliacao_treinamento", "satisfacao_treinamento",
+  "avaliacao_profissional", "nps", "observacao", "falar_gestor",
+  "telefone", "melhor_horario"
+];
+
+// ============================================================
+// FUNÇÃO PRINCIPAL
+// ============================================================
+function processarNovaResposta() {
+  const ss        = SpreadsheetApp.getActiveSpreadsheet();
+  const abaOrigem = ss.getSheetByName(ABA_RESPOSTAS);
+  let   abaLimpa  = ss.getSheetByName(ABA_LIMPA);
+
+  if (!abaLimpa) {
+    abaLimpa = ss.insertSheet(ABA_LIMPA);
+  }
+
+  const dados = abaOrigem.getDataRange().getValues();
+
+  // Cria cabeçalho se necessário
+  if (abaLimpa.getLastRow() === 0) {
+    abaLimpa.appendRow(CABECALHO);
+    formatarCabecalho(abaLimpa);
+  }
+
+  // CPFs já existentes
+  const colCPF = CABECALHO.indexOf("cpf");
+  const cpfsExistentes = getCPFsExistentes(abaLimpa, colCPF);
+
+  // Processa cada linha (pula cabeçalho)
+  for (let i = 1; i < dados.length; i++) {
+    const linha = dados[i];
+
+    // Ignora linhas vazias
+    if (!linha[0]) continue;
+
+    const cpf = formatarCPF(linha[IDX.cpf]);
+    if (!cpf || cpfsExistentes.has(cpf)) continue;
+
+    // Identifica a área com base em qual bloco está preenchido
+    const area = identificarArea(linha);
+    const blocoArea = area ? AREAS[area] : null;
+
+    const linhaLimpa = [
+      formatarData(linha[IDX.data_hora]),
+      linha[IDX.termo_aceite] || "",
+      capitalizarNome(linha[IDX.nome]),
+      cpf,
+      linha[IDX.sigla_campo] || "",
+      getPrimeiroPreenchido(linha, IDX_UNIDADES),
+      linha[IDX.area_servico] || area || "",
+      getPrimeiroPreenchido(linha, IDX_PROFISSIONAIS),
+      blocoArea ? (linha[blocoArea.servico_prestado] || "") : "",
+      blocoArea ? (linha[blocoArea.nivel_satisfacao_equipe] || "") : "",
+      blocoArea ? (linha[blocoArea.nivel_satisfacao_prof] || "") : "",
+      blocoArea ? (linha[blocoArea.nivel_satisfacao_espera] || "") : "",
+      blocoArea ? (linha[blocoArea.resolvido] || "") : "",
+      blocoArea ? (linha[blocoArea.obs_nao_resolvido] || "") : "",
+      blocoArea && blocoArea.treinamento !== null ? (linha[blocoArea.treinamento] || "") : "",
+      blocoArea ? (linha[blocoArea.avaliacao_treinamento] || "") : "",
+      blocoArea ? (linha[blocoArea.satisfacao_treinamento] || "") : "",
+      blocoArea ? (linha[blocoArea.avaliacao_profissional] || "") : "",
+      linha[IDX_GERAIS.nps] || "",
+      linha[IDX_GERAIS.observacao] || "",
+      linha[IDX_GERAIS.falar_gestor] || "",
+      linha[IDX_GERAIS.telefone] || "",
+      linha[IDX_GERAIS.melhor_horario] || "",
+    ];
+
+    abaLimpa.appendRow(linhaLimpa);
+    cpfsExistentes.add(cpf);
+  }
+
+  Logger.log("Base de Dados atualizada com sucesso!");
+}
+
+// ============================================================
+// FUNÇÕES AUXILIARES
+// ============================================================
+
+// Identifica qual área está preenchida na linha
+function identificarArea(linha) {
+  if (linha[AREAS.SST.nivel_satisfacao_equipe] || linha[AREAS.SST.servico_prestado]) return "SST";
+  if (linha[AREAS.AMA.nivel_satisfacao_equipe] || linha[AREAS.AMA.servico_prestado]) return "AMA";
+  if (linha[AREAS.GPS.nivel_satisfacao_equipe] || linha[AREAS.GPS.servico_prestado]) return "GPS";
+  if (linha[AREAS.SPS.nivel_satisfacao_equipe] || linha[AREAS.SPS.servico_prestado]) return "SPS";
+  return null;
+}
+
+// Retorna o primeiro valor preenchido de uma lista de índices
+function getPrimeiroPreenchido(linha, indices) {
+  for (const idx of indices) {
+    if (linha[idx] !== undefined && linha[idx] !== null && linha[idx] !== "") {
+      return linha[idx];
+    }
+  }
+  return "";
+}
+
+function formatarCPF(valor) {
+  if (!valor) return "";
+  const n = valor.toString().replace(/\D/g, "");
+  if (n.length !== 11) return valor.toString();
+  return `${n.slice(0,3)}.${n.slice(3,6)}.${n.slice(6,9)}-${n.slice(9)}`;
+}
+
+function formatarData(valor) {
+  if (!valor) return "";
+  const d = new Date(valor);
+  if (isNaN(d)) return valor;
+  const pad = n => String(n).padStart(2, "0");
+  return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function capitalizarNome(nome) {
+  if (!nome) return "";
+  return nome.toString().toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function getCPFsExistentes(aba, colCPF) {
+  const set = new Set();
+  if (aba.getLastRow() <= 1) return set;
+  const dados = aba.getRange(2, colCPF + 1, aba.getLastRow() - 1, 1).getValues();
+  dados.forEach(row => { if (row[0]) set.add(row[0].toString().trim()); });
+  return set;
+}
+
+function formatarCabecalho(aba) {
+  const cab = aba.getRange(1, 1, 1, CABECALHO.length);
+  cab.setBackground("#1a237e");
+  cab.setFontColor("#ffffff");
+  cab.setFontWeight("bold");
+  aba.setFrozenRows(1);
+  aba.autoResizeColumns(1, CABECALHO.length);
+}
+
+// ============================================================
+// CONFIGURAR TRIGGER (rodar UMA única vez)
+// ============================================================
+function configurarTrigger() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t));
+  ScriptApp.newTrigger("processarNovaResposta")
+    .forSpreadsheet(ss)
+    .onFormSubmit()
+    .create();
+  Logger.log("Trigger configurado!");
+}
+
+configurarTrigger()
