@@ -14,10 +14,10 @@ const IDX = {
   area_servico: 33,  // Col AH
 };
 
-// Unidade: cols F a AG (índices 5 a 32) — pega a primeira preenchida
+// Unidade: cols F a AG (índices 5 a 32) 
 const IDX_UNIDADES = Array.from({ length: 28 }, (_, i) => i + 5);
 
-// Profissional: cols AI a AL (índices 34 a 37) — pega a primeira preenchida
+// Profissional: cols AI a AL (índices 34 a 37) 
 const IDX_PROFISSIONAIS = [34, 35, 36, 37];
 
 // Campos condicionais por área de serviço
@@ -111,7 +111,7 @@ const CABECALHO = [
 ];
 
 
-// TRIGGER PRINCIPAL — chamado automaticamente a cada envio
+// TRIGGER PRINCIPAL — 
 function processarNovaResposta(e) {
   const ss        = SpreadsheetApp.getActiveSpreadsheet();
   const abaOrigem = ss.getSheetByName(ABA_RESPOSTAS);
@@ -145,7 +145,7 @@ function processarNovaResposta(e) {
 }
 
 
-// REPROCESSAR TUDO — rode manualmente 
+// REPROCESSAR TUDO —  
 function reprocessarTudo() {
   const ss        = SpreadsheetApp.getActiveSpreadsheet();
   const abaOrigem = ss.getSheetByName(ABA_RESPOSTAS);
@@ -281,9 +281,6 @@ function formatarCPF(valor) {
   return `${n.slice(0,3)}.${n.slice(3,6)}.${n.slice(6,9)}-${n.slice(9)}`;
 }
 
-
-// Retorna string pura para evitar que o Google Sheets
-// reconverta o valor para número serial de data.
 function formatarData(valor) {
   if (!valor) return "";
   const d = (valor instanceof Date) ? valor : new Date(valor);
@@ -306,12 +303,11 @@ function formatarCabecalho(aba) {
   aba.autoResizeColumns(1, CABECALHO.length);
 
 
-  // (data_hora) 
   aba.getRange("A:A").setNumberFormat("@");
 }
 
 
-// CONFIGURAR TRIGGER — 
+// CONFIGURAR TRIGGER —
 function configurarTrigger() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   // Remove triggers antigos para evitar duplicatas
