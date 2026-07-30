@@ -74,7 +74,7 @@ const AREAS = {
 
 // Campos gerais 
 const IDX_GERAIS = {
-  nps_recomendacao: 75,  // Col BX — "Probabilidade de recomendar" (0–10) → usado para NPS real
+  nps_recomendacao: 75,  // Col BX — 
   observacao      : 76,  // Col BY
   falar_gestor    : 77,  // Col BZ
   telefone        : 78,  // Col CA
@@ -84,7 +84,7 @@ const IDX_GERAIS = {
 
 // CABEÇALHO DA BASE DE DADOS
 const CABECALHO = [
-  "data_hora",               // Data/hora formatada como texto
+  "data_hora",               
   "termo_aceite",
   "nome",
   "cpf",
@@ -102,8 +102,8 @@ const CABECALHO = [
   "avaliacao_treinamento",
   "satisfacao_treinamento",
   "avaliacao_profissional",
-  "nps_recomendacao",        // Nota bruta (0–10) da pergunta de recomendação
-  "nps_categoria",           // Promotor / Neutro / Detrator
+  "nps_recomendacao",       
+  "nps_categoria",           
   "observacao",
   "falar_gestor",
   "telefone",
@@ -121,13 +121,13 @@ function processarNovaResposta(e) {
     abaLimpa = ss.insertSheet(ABA_LIMPA);
   }
 
-  // Garante o cabeçalho formatado
+  // cabeçalho formatado
   if (abaLimpa.getLastRow() === 0) {
     abaLimpa.appendRow(CABECALHO);
     formatarCabecalho(abaLimpa);
   }
 
-  // Pega o índice da linha recém-enviada
+  
   const linhaIdx = (e && e.range) ? e.range.getRow() : abaOrigem.getLastRow();
   if (!linhaIdx || linhaIdx <= 1) return;
 
@@ -223,11 +223,8 @@ function montarLinhaLimpa(linha) {
 }
 
 
-// NPS — CATEGORIA POR PESSOA
-// Promotor  (nota 9–10)  → "Promotor"
-// Neutro    (nota 7–8)   → "Neutro"
-// Detrator  (nota 0–6)   → "Detrator"
 
+// NPS - categoria
 function calcularCategoriaНPS(nota) {
   if (nota === "" || nota === null || nota === undefined) return "";
   const n = Number(nota);
