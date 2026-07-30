@@ -4,7 +4,7 @@ Automação desenvolvida em **JavaScript (Google Apps Script)** para processar e
 
 ##  Contexto
 
-Sistema desenvolvido para o **Centro Médico Adventista**, com o objetivo de automatizar o tratamento de dados de uma pesquisa de lista de presença e satisfação aplicada em múltiplas áreas de serviço.
+Sistema desenvolvido, com o objetivo de automatizar o tratamento de dados de uma pesquisa de lista de presença e satisfação aplicada em múltiplas áreas de serviço.
 
 ##  Funcionalidades
 
@@ -12,7 +12,7 @@ Sistema desenvolvido para o **Centro Médico Adventista**, com o objetivo de aut
 - Limpeza e padronização dos dados brutos
 - Organização em aba estruturada com cabeçalho formatado
 - Cálculo de **NPS** (Net Promoter Score) por respondente
-- Identificação automática da área de serviço (SST, AMA, GPS, SPS)
+- Identificação automática da área de serviço 
 - Formatação de CPF, nomes e datas
 - Reprocessamento completo do histórico quando necessário
 
