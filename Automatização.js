@@ -22,7 +22,7 @@ const IDX_PROFISSIONAIS = [34, 35, 36, 37];
 
 // Campos condicionais por área de serviço
 const AREAS = {
-  SST: {
+  Nome da área: {
     servico_prestado       : 38,  // Col AM
     nivel_satisfacao_equipe: 39,  // Col AN
     nivel_satisfacao_prof  : 40,  // Col AO
@@ -34,7 +34,7 @@ const AREAS = {
     satisfacao_treinamento : 46,  // Col AU
     avaliacao_profissional : 47,  // Col AV
   },
-  AMA: {
+  Nome da área: {
     servico_prestado       : 48,  // Col AW
     nivel_satisfacao_equipe: 49,  // Col AX
     nivel_satisfacao_prof  : 50,  // Col AY
@@ -46,7 +46,7 @@ const AREAS = {
     satisfacao_treinamento : 55,  // Col BD
     avaliacao_profissional : 56,  // Col BE
   },
-  GPS: {
+  Nome da área: {
     servico_prestado       : 57,  // Col BF
     nivel_satisfacao_equipe: 58,  // Col BG
     nivel_satisfacao_prof  : 59,  // Col BH
@@ -58,7 +58,7 @@ const AREAS = {
     satisfacao_treinamento : 64,  // Col BM
     avaliacao_profissional : 65,  // Col BN
   },
-  SPS: {
+  Nome da área: {
     servico_prestado       : 66,  // Col BO
     nivel_satisfacao_equipe: 67,  // Col BP
     nivel_satisfacao_prof  : 68,  // Col BQ
@@ -237,10 +237,10 @@ function calcularCategoriaНPS(nota) {
 
 // IDENTIFICAR ÁREA
 function identificarArea(linha) {
-  if (linha[AREAS.SST.nivel_satisfacao_equipe] || linha[AREAS.SST.servico_prestado]) return "SST";
-  if (linha[AREAS.AMA.nivel_satisfacao_equipe] || linha[AREAS.AMA.servico_prestado]) return "AMA";
-  if (linha[AREAS.GPS.nivel_satisfacao_equipe] || linha[AREAS.GPS.servico_prestado]) return "GPS";
-  if (linha[AREAS.SPS.nivel_satisfacao_equipe] || linha[AREAS.SPS.servico_prestado]) return "SPS";
+  if (linha[AREAS.SST.nivel_satisfacao_equipe] || linha[AREAS.SST.servico_prestado]) return "Nome da área";
+  if (linha[AREAS.AMA.nivel_satisfacao_equipe] || linha[AREAS.AMA.servico_prestado]) return "Nome da área";
+  if (linha[AREAS.GPS.nivel_satisfacao_equipe] || linha[AREAS.GPS.servico_prestado]) return "Nome da área";
+  if (linha[AREAS.SPS.nivel_satisfacao_equipe] || linha[AREAS.SPS.servico_prestado]) return "Nome da área";
   return null;
 }
 
